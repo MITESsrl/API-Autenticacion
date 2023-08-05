@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Lcobucci\JWT\Parser;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Persona;
+
 
 
 
@@ -17,7 +19,11 @@ class UserController extends Controller
     public function Register(Request $request){
 
         $validation = Validator::make($request->all(),[
-            'name' => 'required|max:255',
+            'priNomb' => 'required|max:32',
+            'ci' => 'required|max:8|unique:personas',
+            'segNomb' => 'max:32',
+            'priApe' => 'required|max:32',
+            'segApe' => 'max:32',
             'email' => 'required|email|unique:users',
             'password' => 'required|confirmed'
         ]);
@@ -25,13 +31,17 @@ class UserController extends Controller
         if($validation->fails())
             return $validation->errors();
 
-        return $this -> createUser($request);
+        $usuario = $this -> createUser($request);
+        $idUsuario = $usuario -> id;
+        
+        return $this -> crearPersona($idUsuario, $request);
+        
+
         
     }
 
     private function createUser($request){
         $user = new User();
-        $user -> name = $request -> post("name");
         $user -> email = $request -> post("email");
         $user -> password = Hash::make($request -> post("password"));   
         $user -> save();
@@ -48,6 +58,20 @@ class UserController extends Controller
         
         
     }
+
+    private function crearPersona($idUsuario, $request){
+        $persona = new Persona();
+        $persona -> id = $idUsuario;
+        $persona -> ci = $request -> post("ci");
+        $persona -> pri_nomb = $request -> post("priNomb");
+        $persona -> seg_nomb = $request -> post("segNomb");
+        $persona -> pri_ape = $request -> post("priApe");
+        $persona -> seg_ape = $request -> post("segApe");
+        $persona -> save();
+        return $persona;
+
+    }
+
 
     
 }
